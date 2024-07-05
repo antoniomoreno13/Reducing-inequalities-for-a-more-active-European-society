@@ -19,7 +19,7 @@ names(eu2017)[3:15] <- c("Sport_Freq", "Sport_Freq_rec", "PA_Freq", "PA_Freq_rec
 names(eu2017)[16:28] <- c("Gender", "Age","Marital status", "Social class subjective", "Type of community", "Sizeofcommunity" ,"Education", "Ocupation", "Ocupation_rec1", "Ocupation_rec2", "Ocupation_last_job", "Bills", "Country")
 names(eu2017)[29] <- "w23"
 eu2017["survey"] <- "2017"
-
+eu2017 <- eu2017[which(eu2017$Age >= 18), ]
 
 eu2017 <- eu2017[-c(which(eu2017$PA_Freq == "Never" & eu2017$Sport_Freq == "DK")), ] # REMOVE NOT VALID CASES
 eu2017 <- eu2017[-c(which(eu2017$PA_Freq == "DK" & eu2017$Sport_Freq == "Never")), ]
@@ -288,39 +288,74 @@ eu2017$WHO_prev <- relevel(eu2017$WHO_prev, ref = "Active")
 
 eu2017$Age_centred <- scale(eu2017$Age, center = T, scale = F)
 
+# Covariates crude models
+model_age_unadj <- glmer(WHO_prev ~ Age_centred + (1 | Country_rec), data = eu2017, family = binomial, 
+                          control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_gender_unadj <- glmer(WHO_prev ~ Gender + (1 | Country_rec), data = eu2017, family = binomial, 
+                          control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_place_unadj <- glmer(WHO_prev ~ Sizeofcommunity + (1 | Country_rec), data = eu2017, family = binomial, 
+                          control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_marital_unadj <- glmer(WHO_prev ~ `Marital status` + (1 | Country_rec), data = eu2017, family = binomial, 
+                          control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_age_unadj, model_gender_unadj, model_place_unadj, model_marital_unadj, digits.re = 3)
 
+
+# Education - model 1
 model_educ_unadj <- glmer(WHO_prev ~ Education_3cat_recod + (1 | Country_rec), data = eu2017, family = binomial, 
       control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
-
 model_educ_adj <- glmer(WHO_prev ~ Education_3cat_recod + Age_centred + Gender + Sizeofcommunity + `Marital status` + (1 | Country_rec), 
       data = eu2017, family = binomial, 
       control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
-
 tab_model(model_educ_unadj, model_educ_adj, digits.re = 3)
 
+model_educ_age_adj <- glmer(WHO_prev ~ Education_3cat_recod + Age_centred + (1 | Country_rec), data = eu2017, family = binomial, 
+                         control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_educ_gender_adj <- glmer(WHO_prev ~ Education_3cat_recod +  Gender + (1 | Country_rec), data = eu2017, family = binomial, 
+                            control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_educ_place_adj <- glmer(WHO_prev ~ Education_3cat_recod + Sizeofcommunity + (1 | Country_rec), data = eu2017, family = binomial, 
+                           control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_educ_marital_adj <- glmer(WHO_prev ~ Education_3cat_recod + `Marital status` + (1 | Country_rec), data = eu2017, family = binomial, 
+                             control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_educ_age_adj, model_educ_gender_adj, model_educ_place_adj, model_educ_marital_adj, digits.re = 3)
 
 
-
+# Occupation - model 1
 model_ocup_unadj <- glmer(WHO_prev ~ Ocupation_3cat + (1 | Country_rec), data = eu2017, family = binomial, 
       control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
-
 model_ocup_adj <- glmer(WHO_prev ~ Ocupation_3cat + Age_centred + Gender + Sizeofcommunity + `Marital status` + (1 | Country_rec), 
       data = eu2017, family = binomial, 
       control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
-
 tab_model(model_ocup_unadj, model_ocup_adj, digits.re = 3)
 
 
+model_ocup_age_adj <- glmer(WHO_prev ~ Ocupation_3cat + Age_centred + (1 | Country_rec), data = eu2017, family = binomial, 
+                              control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_ocup_gender_adj <- glmer(WHO_prev ~ Ocupation_3cat +  Gender + (1 | Country_rec), data = eu2017, family = binomial, 
+                                 control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_ocup_place_adj <- glmer(WHO_prev ~ Ocupation_3cat + Sizeofcommunity + (1 | Country_rec), data = eu2017, family = binomial, 
+                                control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_ocup_marital_adj <- glmer(WHO_prev ~ Ocupation_3cat + `Marital status` + (1 | Country_rec), data = eu2017, family = binomial, 
+                                  control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_ocup_age_adj, model_ocup_gender_adj, model_ocup_place_adj, model_ocup_marital_adj, digits.re = 3)
 
 
+# Economic issues - model 1
 model_bills_unadj <- glmer(WHO_prev ~ Bills + (1 | Country_rec), data = eu2017, family = binomial, 
       control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
-
 model_bills_adj <- glmer(WHO_prev ~ Bills + Age_centred + Gender + Sizeofcommunity + `Marital status` + (1 | Country_rec), 
       data = eu2017, family = binomial, 
       control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
-
 tab_model(model_bills_unadj, model_bills_adj, digits.re = 3)
+
+model_bills_age_adj <- glmer(WHO_prev ~ Bills + Age_centred + (1 | Country_rec), data = eu2017, family = binomial, 
+                              control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_bills_gender_adj <- glmer(WHO_prev ~ Bills +  Gender + (1 | Country_rec), data = eu2017, family = binomial, 
+                                 control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_bills_place_adj <- glmer(WHO_prev ~ Bills + Sizeofcommunity + (1 | Country_rec), data = eu2017, family = binomial, 
+                                control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_bills_marital_adj <- glmer(WHO_prev ~ Bills + `Marital status` + (1 | Country_rec), data = eu2017, family = binomial, 
+                                  control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_bills_age_adj, model_bills_gender_adj, model_bills_place_adj, model_bills_marital_adj, digits.re = 3)
 
 
 
@@ -333,6 +368,7 @@ eu2017$Ocupation_3cat_2 <- relevel(eu2017$Ocupation_3cat_2, ref = "III-IV")
 eu2017$Bills_2 <- relevel(eu2017$Bills_2, ref = "From time to time")
 
 
+# Education - model 2
 model_educ_unadj_2 <- glmer(WHO_prev ~ Education_3cat_recod_2 + (1 | Country_rec), 
                           data = eu2017, family = binomial, 
                           control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
@@ -340,6 +376,18 @@ model_educ_adj_2 <- glmer(WHO_prev ~ Education_3cat_recod_2 + Age_centred + Gend
       data = eu2017, family = binomial, 
       control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
 
+model_educ_age_adj_2 <- glmer(WHO_prev ~ Education_3cat_recod_2 + Age_centred + (1 | Country_rec), data = eu2017, family = binomial, 
+                              control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_educ_gender_adj_2 <- glmer(WHO_prev ~ Education_3cat_recod_2 +  Gender + (1 | Country_rec), data = eu2017, family = binomial, 
+                                 control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_educ_place_adj_2 <- glmer(WHO_prev ~ Education_3cat_recod_2 + Sizeofcommunity + (1 | Country_rec), data = eu2017, family = binomial, 
+                                control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_educ_marital_adj_2 <- glmer(WHO_prev ~ Education_3cat_recod_2 + `Marital status` + (1 | Country_rec), data = eu2017, family = binomial, 
+                                  control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_educ_age_adj_2, model_educ_gender_adj_2, model_educ_place_adj_2, model_educ_marital_adj_2, digits.re = 3)
+
+
+# Occupation - model 2
 model_ocup_unadj_2 <- glmer(WHO_prev ~ Ocupation_3cat_2  + (1 | Country_rec), 
                           data = eu2017, family = binomial, 
                           control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
@@ -347,6 +395,18 @@ model_ocup_adj_2 <- glmer(WHO_prev ~ Ocupation_3cat_2 + Age_centred + Gender + S
       data = eu2017, family = binomial, 
       control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
 
+model_ocup_age_adj_2 <- glmer(WHO_prev ~ Ocupation_3cat_2 + Age_centred + (1 | Country_rec), data = eu2017, family = binomial, 
+                                control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_ocup_gender_adj_2 <- glmer(WHO_prev ~ Ocupation_3cat_2 +  Gender + (1 | Country_rec), data = eu2017, family = binomial, 
+                                   control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_ocup_place_adj_2 <- glmer(WHO_prev ~ Ocupation_3cat_2 + Sizeofcommunity + (1 | Country_rec), data = eu2017, family = binomial, 
+                                  control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_ocup_marital_adj_2 <- glmer(WHO_prev ~ Ocupation_3cat_2 + `Marital status` + (1 | Country_rec), data = eu2017, family = binomial, 
+                                    control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_ocup_age_adj_2, model_ocup_gender_adj_2, model_ocup_place_adj_2, model_ocup_marital_adj_2, digits.re = 3)
+
+
+# Economic issues - model 2
 model_bills_unadj_2 <- glmer(WHO_prev ~ Bills_2 + (1 | Country_rec), 
                            data = eu2017, family = binomial, 
                            control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
@@ -354,9 +414,208 @@ model_bills_adj_2 <- glmer(WHO_prev ~ Bills_2 + Age_centred + Gender + Sizeofcom
       data = eu2017, family = binomial, 
       control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
 
+model_bills_age_adj_2 <- glmer(WHO_prev ~ Bills_2 + Age_centred + (1 | Country_rec), data = eu2017, family = binomial, 
+                                control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_bills_gender_adj_2 <- glmer(WHO_prev ~ Bills_2 +  Gender + (1 | Country_rec), data = eu2017, family = binomial, 
+                                   control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_bills_place_adj_2 <- glmer(WHO_prev ~ Bills_2 + Sizeofcommunity + (1 | Country_rec), data = eu2017, family = binomial, 
+                                  control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_bills_marital_adj_2 <- glmer(WHO_prev ~ Bills_2 + `Marital status` + (1 | Country_rec), data = eu2017, family = binomial, 
+                                    control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_bills_age_adj_2, model_bills_gender_adj_2, model_bills_place_adj_2, model_bills_marital_adj_2, digits.re = 3)
+
 tab_model(model_educ_unadj_2, model_educ_adj_2, 
           model_ocup_unadj_2, model_ocup_adj_2, 
           model_bills_unadj_2, model_bills_adj_2, digits.re = 3)
+
+
+
+## Supplementary regression models - interaction terms and segmented analysis ##
+# Education - model 1
+model_educ_adj_int <- glmer(WHO_prev ~ Education_3cat_recod + Age_centred + Gender + Sizeofcommunity + `Marital status` + 
+                          Education_3cat_recod*Gender + Education_3cat_recod*Sizeofcommunity + Education_3cat_recod*`Marital status` +
+                          (1 | Country_rec), 
+                        data = eu2017, family = binomial, 
+                        control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_educ_adj_int, digits.re = 3)
+
+model_educ_adj_int_rural <- glmer(WHO_prev ~ Education_3cat_recod + Age_centred + Gender + `Marital status` + 
+                              Education_3cat_recod*Gender + Education_3cat_recod*`Marital status` +
+                              (1 | Country_rec), 
+                            data = subset(eu2017, Sizeofcommunity =="Rural area"), family = binomial, 
+                            control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_educ_adj_int_suburban <- glmer(WHO_prev ~ Education_3cat_recod + Age_centred + Gender + `Marital status` + 
+                              Education_3cat_recod*Gender + Education_3cat_recod*`Marital status` +
+                              (1 | Country_rec), 
+                            data = subset(eu2017, Sizeofcommunity =="Towns and suburbs/ small urban area"), family = binomial, 
+                            control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_educ_adj_int_city <- glmer(WHO_prev ~ Education_3cat_recod + Age_centred + Gender + `Marital status` + 
+                                  Education_3cat_recod*Gender + Education_3cat_recod*`Marital status` +
+                                  (1 | Country_rec), 
+                                data = subset(eu2017, Sizeofcommunity =="Cities/ large urban area"), family = binomial, 
+                                control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_educ_adj_int_rural, model_educ_adj_int_suburban, model_educ_adj_int_city, digits.re = 3)
+
+model_educ_adj_int_single_no_children <- glmer(WHO_prev ~ Education_3cat_recod + Age_centred + Gender + Sizeofcommunity + 
+                                    Education_3cat_recod*Gender + Education_3cat_recod*Sizeofcommunity +
+                                    (1 | Country_rec), 
+                                  data = subset(eu2017, `Marital status` =="Single hh without children (9,11,13 in d7)"), family = binomial, 
+                                  control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_educ_adj_int_multiple_no_children <- glmer(WHO_prev ~ Education_3cat_recod + Age_centred + Gender + Sizeofcommunity + 
+                                       Education_3cat_recod*Gender + Education_3cat_recod*Sizeofcommunity +
+                                       (1 | Country_rec), 
+                                     data = subset(eu2017, `Marital status` =="Multiple hh without children (1, 5 in d7)"), family = binomial, 
+                                     control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_educ_adj_int_multiple_children <- glmer(WHO_prev ~ Education_3cat_recod + Age_centred + Gender + Sizeofcommunity + 
+                                   Education_3cat_recod*Gender + Education_3cat_recod*Sizeofcommunity +
+                                   (1 | Country_rec), 
+                                 data = subset(eu2017, `Marital status` =="Multiple hh with children (2-4, 6-8 in d7)"), family = binomial, 
+                                 control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_educ_adj_int_single_no_children, model_educ_adj_int_multiple_no_children, model_educ_adj_int_multiple_children, digits.re = 3)
+
+
+# Occupation - model 1
+model_ocup_adj_int <- glmer(WHO_prev ~ Ocupation_3cat + Age_centred + Gender + Sizeofcommunity + `Marital status` + 
+                          Ocupation_3cat*Gender + Ocupation_3cat*Sizeofcommunity + Ocupation_3cat*`Marital status` +
+                          (1 | Country_rec),
+                        data = eu2017, family = binomial, 
+                        control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_ocup_adj_int, digits.re = 3)
+
+model_ocup_adj_int_rural <- glmer(WHO_prev ~ Ocupation_3cat + Age_centred + Gender + `Marital status` + 
+                                    Ocupation_3cat*Gender + Ocupation_3cat*`Marital status` +
+                                    (1 | Country_rec), 
+                                  data = subset(eu2017, Sizeofcommunity =="Rural area"), family = binomial, 
+                                  control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_ocup_adj_int_suburban <- glmer(WHO_prev ~ Ocupation_3cat + Age_centred + Gender + `Marital status` + 
+                                       Ocupation_3cat*Gender + Ocupation_3cat*`Marital status` +
+                                       (1 | Country_rec), 
+                                     data = subset(eu2017, Sizeofcommunity =="Towns and suburbs/ small urban area"), family = binomial, 
+                                     control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_ocup_adj_int_city <- glmer(WHO_prev ~ Ocupation_3cat + Age_centred + Gender + `Marital status` + 
+                                   Ocupation_3cat*Gender + Ocupation_3cat*`Marital status` +
+                                   (1 | Country_rec), 
+                                 data = subset(eu2017, Sizeofcommunity =="Cities/ large urban area"), family = binomial, 
+                                 control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_ocup_adj_int_rural, model_ocup_adj_int_suburban, model_ocup_adj_int_city, digits.re = 3)
+
+
+# Economic issues - model 1
+model_bills_adj_int <- glmer(WHO_prev ~ Bills + Age_centred + Sizeofcommunity + `Marital status` + 
+                           Bills*Gender + Bills*Sizeofcommunity + Bills*`Marital status` +
+                           (1 | Country_rec),
+                         data = eu2017, family = binomial, 
+                         control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_bills_adj_int, digits.re = 3)
+
+model_bills_adj_int_single_no_children <- glmer(WHO_prev ~ Bills + Age_centred + Gender + Sizeofcommunity + 
+                                                 Bills*Gender + Bills*Sizeofcommunity +
+                                                 (1 | Country_rec), 
+                                               data = subset(eu2017, `Marital status` =="Single hh without children (9,11,13 in d7)"), family = binomial, 
+                                               control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_bills_adj_int_multiple_no_children <- glmer(WHO_prev ~ Bills + Age_centred + Gender + Sizeofcommunity + 
+                                                   Bills*Gender + Bills*Sizeofcommunity +
+                                                   (1 | Country_rec), 
+                                                 data = subset(eu2017, `Marital status` =="Multiple hh without children (1, 5 in d7)"), family = binomial, 
+                                                 control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_bills_adj_int_multiple_children <- glmer(WHO_prev ~ Bills + Age_centred + Gender + Sizeofcommunity + 
+                                                Bills*Gender + Bills*Sizeofcommunity +
+                                                (1 | Country_rec), 
+                                              data = subset(eu2017, `Marital status` =="Multiple hh with children (2-4, 6-8 in d7)"), family = binomial, 
+                                              control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_bills_adj_int_single_no_children, model_bills_adj_int_multiple_no_children, model_bills_adj_int_multiple_children, digits.re = 3)
+
+
+# Education - model 2
+model_educ_adj_2_int <- glmer(WHO_prev ~ Education_3cat_recod_2 + Age_centred + Gender + Sizeofcommunity + `Marital status` + 
+                            Education_3cat_recod_2*Gender + Education_3cat_recod_2*Sizeofcommunity + Education_3cat_recod_2*`Marital status` +
+                            (1 | Country_rec),
+                          data = eu2017, family = binomial, 
+                          control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_educ_adj_2_int, digits.re = 3)
+
+model_educ_adj_2_int_single_no_children <- glmer(WHO_prev ~ Education_3cat_recod_2 + Age_centred + Gender + Sizeofcommunity + 
+                                                  Education_3cat_recod_2*Gender + Education_3cat_recod_2*Sizeofcommunity +
+                                                  (1 | Country_rec), 
+                                                data = subset(eu2017, `Marital status` =="Single hh without children (9,11,13 in d7)"), family = binomial, 
+                                                control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_educ_adj_2_int_multiple_no_children <- glmer(WHO_prev ~ Education_3cat_recod_2 + Age_centred + Gender + Sizeofcommunity + 
+                                                    Education_3cat_recod_2*Gender + Education_3cat_recod_2*Sizeofcommunity +
+                                                    (1 | Country_rec), 
+                                                  data = subset(eu2017, `Marital status` =="Multiple hh without children (1, 5 in d7)"), family = binomial, 
+                                                  control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_educ_adj_2_int_multiple_children <- glmer(WHO_prev ~ Education_3cat_recod_2 + Age_centred + Gender + Sizeofcommunity + 
+                                                 Education_3cat_recod_2*Gender + Education_3cat_recod_2*Sizeofcommunity +
+                                                 (1 | Country_rec), 
+                                               data = subset(eu2017, `Marital status` =="Multiple hh with children (2-4, 6-8 in d7)"), family = binomial, 
+                                               control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_educ_adj_2_int_single_no_children, model_educ_adj_2_int_multiple_no_children, model_educ_adj_2_int_multiple_children, digits.re = 3)
+
+model_educ_adj_2_int_rural <- glmer(WHO_prev ~ Education_3cat_recod_2 + Age_centred + Gender + `Marital status` + 
+                                    Education_3cat_recod_2*Gender + Education_3cat_recod_2*`Marital status` +
+                                    (1 | Country_rec), 
+                                  data = subset(eu2017, Sizeofcommunity =="Rural area"), family = binomial, 
+                                  control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_educ_adj_2_int_suburban <- glmer(WHO_prev ~ Education_3cat_recod_2 + Age_centred + Gender + `Marital status` + 
+                                       Education_3cat_recod_2*Gender + Education_3cat_recod_2*`Marital status` +
+                                       (1 | Country_rec), 
+                                     data = subset(eu2017, Sizeofcommunity =="Towns and suburbs/ small urban area"), family = binomial, 
+                                     control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_educ_adj_2_int_rural, model_educ_adj_2_int_suburban, digits.re = 3)
+
+
+# Occupation - model 2
+model_ocup_adj_2_int <- glmer(WHO_prev ~ Ocupation_3cat_2 + Age_centred + Gender + Sizeofcommunity + `Marital status` + 
+                            Ocupation_3cat_2*Gender + Ocupation_3cat_2*Sizeofcommunity + Ocupation_3cat_2*`Marital status` +
+                            (1 | Country_rec), 
+                          data = eu2017, family = binomial, 
+                          control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_ocup_adj_2_int, digits.re = 3)
+
+model_ocup_adj_2_int_rural <- glmer(WHO_prev ~ Ocupation_3cat_2 + Age_centred + Gender + `Marital status` + 
+                                    Ocupation_3cat_2*Gender + Ocupation_3cat_2*`Marital status` +
+                                    (1 | Country_rec), 
+                                  data = subset(eu2017, Sizeofcommunity =="Rural area"), family = binomial, 
+                                  control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_ocup_adj_2_int_suburban <- glmer(WHO_prev ~ Ocupation_3cat_2 + Age_centred + Gender + `Marital status` + 
+                                       Ocupation_3cat_2*Gender + Ocupation_3cat_2*`Marital status` +
+                                       (1 | Country_rec), 
+                                     data = subset(eu2017, Sizeofcommunity =="Towns and suburbs/ small urban area"), family = binomial, 
+                                     control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_ocup_adj_2_int_city <- glmer(WHO_prev ~ Ocupation_3cat_2 + Age_centred + Gender + `Marital status` + 
+                                   Ocupation_3cat_2*Gender + Ocupation_3cat_2*`Marital status` +
+                                   (1 | Country_rec), 
+                                 data = subset(eu2017, Sizeofcommunity =="Cities/ large urban area"), family = binomial, 
+                                 control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_ocup_adj_2_int_rural, model_ocup_adj_2_int_suburban, model_ocup_adj_2_int_city, digits.re = 3)
+
+
+# Economic issues - model 2
+model_bills_adj_2_int <- glmer(WHO_prev ~ Bills_2 + Age_centred + Gender + Sizeofcommunity + `Marital status` + 
+                             Bills_2*Gender + Bills_2*Sizeofcommunity + Bills_2*`Marital status` +
+                             (1 | Country_rec),
+                           data = eu2017, family = binomial, 
+                           control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_bills_adj_2_int, digits.re = 3)
+
+model_bills_adj_2_int_single_no_children <- glmer(WHO_prev ~ Bills_2 + Age_centred + Gender + Sizeofcommunity + 
+                                                   Bills_2*Gender + Bills_2*Sizeofcommunity +
+                                                   (1 | Country_rec), 
+                                                 data = subset(eu2017, `Marital status` =="Single hh without children (9,11,13 in d7)"), family = binomial, 
+                                                 control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_bills_adj_2_int_multiple_no_children <- glmer(WHO_prev ~ Bills_2 + Age_centred + Gender + Sizeofcommunity + 
+                                                     Bills_2*Gender + Bills_2*Sizeofcommunity +
+                                                     (1 | Country_rec), 
+                                                   data = subset(eu2017, `Marital status` =="Multiple hh without children (1, 5 in d7)"), family = binomial, 
+                                                   control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+model_bills_adj_2_int_multiple_children <- glmer(WHO_prev ~ Bills_2 + Age_centred + Gender + Sizeofcommunity + 
+                                                  Bills_2*Gender + Bills_2*Sizeofcommunity +
+                                                  (1 | Country_rec), 
+                                                data = subset(eu2017, `Marital status` =="Multiple hh with children (2-4, 6-8 in d7)"), family = binomial, 
+                                                control = glmerControl(optimizer = "bobyqa"), nAGQ = 10, na.action = na.exclude, weights = w23)
+tab_model(model_bills_adj_2_int_single_no_children, model_bills_adj_2_int_multiple_no_children, model_bills_adj_2_int_multiple_children, digits.re = 3)
+
+tab_model(model_educ_adj_2_int, model_ocup_adj_2_int, model_bills_adj_2_int, digits.re = 3)
 
 
 
